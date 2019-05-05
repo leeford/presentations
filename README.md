@@ -1,2 +1,2 @@
 # Presentations
-Past Presentations that I have given.
+Past presentations/talks that I have given.
