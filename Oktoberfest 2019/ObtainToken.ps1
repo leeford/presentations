@@ -8,7 +8,7 @@ $codeBody = @{
 
     resource  = "https://graph.microsoft.com/"
     client_id = $clientId
-    scope     = "Group.ReadWrite.All, User.ReadBasic.All"
+    scope     = "Group.ReadWrite.All, User.ReadBasic.All Notes.ReadWrite.All"
 
 }
 
@@ -48,5 +48,7 @@ while ([string]::IsNullOrEmpty($tokenRequest.access_token)) {
     }
 
 }
+
+$tokenRequest
 
 $global:token = $tokenRequest

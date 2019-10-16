@@ -46,10 +46,42 @@ function Invoke-GraphAPICall {
     
 }
 
-# Delete Team(s)
+# List Teams Drive Usage
 #######################################################################################################
 
-# Delete
-Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/groups/$global:TeamId" -Method "DELETE"
+$groups = Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/groups" -Method "GET"
+
+$allDrives = @()
+
+# Loop through groups
+$groups.value | ForEach-Object {
+
+    # Check if it's a Team
+    if ($_.ResourceProvisioningOptions -contains "Team") {
+
+        $TeamId = $_.id
+        $TeamDisplayName = $_.DisplayName
+
+        Write-Host "Checking $TeamDisplayName"
+
+        $driveInfo = Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/groups/$TeamId/drive/"
+
+        if ($driveInfo.quota.used) {
+
+            $drive = @{
+
+                Team_Name = $TeamDisplayName
+                Used_MB     = ($driveInfo.quota.used / 1000000)
+
+            }
+
+            $allDrives += New-Object PSObject -Property $drive
+
+        }
+    }
+
+}
+
+$allDrives | Sort-Object -Property Used_MB -Descending
 
 #######################################################################################################

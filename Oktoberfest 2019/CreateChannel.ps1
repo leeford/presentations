@@ -46,10 +46,18 @@ function Invoke-GraphAPICall {
     
 }
 
-# Delete Team(s)
+# Create Channel 
 #######################################################################################################
 
-# Delete
-Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/groups/$global:TeamId" -Method "DELETE"
+$body = @{
+
+    displayName           = "New Channel"
+    description           = "A new channel created specifically for Oktoberfest"
+
+} 
+
+$bodyJSON = $body | ConvertTo-Json
+
+Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/teams/$global:TeamId/channels" -Method "POST" -Body $bodyJSON
 
 #######################################################################################################

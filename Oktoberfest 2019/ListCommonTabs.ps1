@@ -46,10 +46,45 @@ function Invoke-GraphAPICall {
     
 }
 
-# Delete Team(s)
+# Most Popular Tabs (Apps)
 #######################################################################################################
 
-# Delete
-Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/groups/$global:TeamId" -Method "DELETE"
+$groups = Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/groups" -Method "GET"
+
+$allTabs = @()
+
+# Loop through groups
+$groups.value | ForEach-Object {
+
+    # Check if it's a Team
+    if ($_.ResourceProvisioningOptions -contains "Team") {
+
+        $TeamId = $_.id
+        $TeamDisplayName = $_.DisplayName
+
+        Write-Host "Checking $TeamDisplayName"
+
+        # Query Channels
+        $channels = Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/teams/$TeamId/channels" -Method "GET"
+
+        $channels.value | ForEach-Object {
+
+            $ChannelId = $_.id
+            $ChannelDisplayName = $_.DisplayName
+
+            Write-Host "    - Checking $ChannelDisplayName"
+
+            # Query Tabs
+            $tabs = Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/teams/$TeamId/channels/$ChannelId/tabs?`$expand=teamsApp" -Method "GET"
+
+            $allTabs += $tabs.value
+
+        }
+
+    }
+
+}
+
+$allTabs.teamsApp | Group-Object -Property id -NoElement | Sort-Object -Property Count -Descending | Format-Table -AutoSize
 
 #######################################################################################################

@@ -54,10 +54,13 @@ $body = @{
     "template@odata.bind" = "https://graph.microsoft.com/beta/teamsTemplates('standard')"
     displayName           = "Oktoberfest"
     description           = "A Team created specifically for Oktoberfest"
+    visibility            = "Private"
 
-} | ConvertTo-Json
+}
 
-Invoke-GraphAPICall -URI "https://graph.microsoft.com/beta/teams" -Method "POST" -Body $body
+$bodyJSON = $body | ConvertTo-Json
+
+Invoke-GraphAPICall -URI "https://graph.microsoft.com/beta/teams" -Method "POST" -Body $bodyJSON
 
 # Get created Team ID
 $matches = $null

@@ -46,10 +46,49 @@ function Invoke-GraphAPICall {
     
 }
 
-# Delete Team(s)
+# Download Team Files
 #######################################################################################################
 
-# Delete
-Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/groups/$global:TeamId" -Method "DELETE"
+$Path = "c:/temp/Oktoberfest"
+            
+Write-Host " - Backing up Files..."
+
+# List all items in drive
+$itemList = Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/groups/$global:TeamId/drive/list/items?`$expand=DriveItem"
+
+# Loop through items
+$itemList.value | ForEach-Object {
+
+    $item = Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/groups/$global:TeamId/drive/items/$($_.DriveItem.id)"
+
+    # If item can be downloaded
+    if ($item."@microsoft.graph.downloadUrl") {
+
+        # Get path in relation to drive
+
+        $itemPath = $item.parentReference.path -replace "/drive/root:", ""
+        $fullFolderPath = "$Path/Files/$itemPath" -replace "//", "/"
+        $fullPath = "$Path/Files/$itemPath/$($item.name)" -replace "//", "/"
+
+        # Create folder to maintain structure
+        New-Item -ItemType Directory -Force -Path $fullFolderPath | Out-Null
+
+        # Download file
+        Write-Host "    - Saving $($item.name)... " -NoNewline
+        try {
+
+            Invoke-WebRequest -Uri $item."@microsoft.graph.downloadUrl" -OutFile $fullPath
+            Write-Host "SUCCESS" -ForegroundColor Green
+
+        }
+        catch {
+
+            Write-Host "FAILED" -ForegroundColor Red
+
+        }
+            
+    }
+
+}
 
 #######################################################################################################
